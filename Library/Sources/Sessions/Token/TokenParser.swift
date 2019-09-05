@@ -2,6 +2,7 @@ import Foundation
 
 protocol TokenParser: class {
     func parse(tokenInfo: String) -> (token: String, expires: TimeInterval, info: [String: String])?
+    func parse(codeInfo: String) -> (String)?
 }
 
 final class TokenParserImpl: TokenParser {
@@ -36,5 +37,32 @@ final class TokenParserImpl: TokenParser {
         }
         
         return (unwrappedToken, unwrappedExpires, info)
+    }
+    
+    func parse(codeInfo: String) -> (String)? {
+        var code: String?
+        
+        let components = codeInfo.components(separatedBy: "&")
+        
+        components.forEach { component in
+            let componentPair = component.components(separatedBy: "=")
+            
+            if let key = componentPair.first, let value = componentPair.last {
+                
+                switch key {
+                case "code":
+                    code = value
+                default:
+                    break
+                }
+                
+            }
+        }
+        
+        guard let unwrappedCode = code else {
+            return nil
+        }
+        
+        return (unwrappedCode)
     }
 }
