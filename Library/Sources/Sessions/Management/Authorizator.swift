@@ -227,7 +227,11 @@ final class AuthorizatorImpl: Authorizator {
             throw VKError.weakObjectWasDeallocated
         }
         
-        return tokenMaker.token(token: "", expires: TimeInterval(), info: [:])
+        return tokenMaker.token(
+            token: "",
+            expires: TimeInterval(),
+            info: ["code": parsingResult]
+        )
     }
     
     private func makeWebAuthRequest(

@@ -166,7 +166,7 @@ public final class SessionImpl: Session, TaskSession, DestroyableSession, ApiErr
             sessionId: id,
             config: config,
             revoke: revoke,
-            authorizationReponse: .token
+            authorizationReponse: authorizationReponse
         )
         self.token = token
         
