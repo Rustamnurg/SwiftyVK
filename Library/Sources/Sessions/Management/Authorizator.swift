@@ -1,6 +1,6 @@
 import Foundation
 
-enum AuthorizationReponse {
+public enum AuthorizationReponse {
     case token
     case code
 }

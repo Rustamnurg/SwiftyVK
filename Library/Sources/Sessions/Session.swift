@@ -19,7 +19,7 @@ public protocol Session: class {
     /// Returns info about logged user.
     /// - parameter onError: clousure which will be executed when logging failed.
     /// Returns cause of failure.
-    func logIn(onSuccess: @escaping ([String: String]) -> (), onError: @escaping RequestCallbacks.Error)
+    func logIn(authorizationReponse: AuthorizationReponse, onSuccess: @escaping ([String: String]) -> (), onError: @escaping RequestCallbacks.Error)
     /// Log in user with raw token
     /// - parameter rawToken: token raw string
     /// - parameter expires: token expires time from now. Zero is infinite token.
@@ -58,6 +58,11 @@ protocol ApiErrorExecutor {
 }
 
 public final class SessionImpl: Session, TaskSession, DestroyableSession, ApiErrorExecutor {
+    
+    func logIn(revoke: Bool) throws -> [String : String] {
+        return try logIn(revoke: revoke, authorizationReponse: .token)
+    }
+    
 
     public var config: SessionConfig {
         didSet {
@@ -136,10 +141,10 @@ public final class SessionImpl: Session, TaskSession, DestroyableSession, ApiErr
         attemptSheduler.setLimit(to: config.attemptsPerSecLimit)
     }
     
-    public func logIn(onSuccess: @escaping ([String: String]) -> (), onError: @escaping RequestCallbacks.Error) {
+    public func logIn(authorizationReponse: AuthorizationReponse = .token, onSuccess: @escaping ([String: String]) -> (), onError: @escaping RequestCallbacks.Error) {
         gateQueue.async {
             do {
-                let info = try self.logIn(revoke: true)
+                let info = try self.logIn(revoke: true, authorizationReponse: authorizationReponse)
                 DispatchQueue.global().async {
                     onSuccess(info)
                 }
@@ -153,16 +158,16 @@ public final class SessionImpl: Session, TaskSession, DestroyableSession, ApiErr
     }
    
     @discardableResult
-    func logIn(revoke: Bool) throws -> [String: String] {
+    func logIn(revoke: Bool, authorizationReponse: AuthorizationReponse = .token) throws -> [String: String] {
         try throwIfDestroyed()
         try throwIfAuthorized()
         
         let token = try authorizator.authorize(
             sessionId: id,
             config: config,
-            revoke: revoke
+            revoke: revoke,
+            authorizationReponse: .token
         )
-        
         self.token = token
         
         return token.info
